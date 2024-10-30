@@ -1,0 +1,37 @@
+name: LocalStack CI/CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup-localstack:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Act dependencies
+        if: ${{ env.ACT }}
+        run: |
+          apt-get update && apt-get install sudo -y
+
+          # - name: Install dependencies
+          #   run: |
+          #     sudo apt-get update && sudo apt-get install curl build-essential
+
+      - name: Install Terraform
+        run: |
+          # Download Terraform
+          curl -o terraform.zip https://releases.hashicorp.com/terraform/1.5.5/terraform_1.5.5_linux_amd64.zip
+          unzip terraform.zip
+          sudo mv terraform /usr/local/bin/
+          terraform -version  # Check if Terraform is installed correctly
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Initialize LocalStack resources with Terraform
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+        run: |
+          terraform init
+          terraform apply -auto-approve
